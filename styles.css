@@ -1,0 +1,24 @@
+* {
+	box-sizing: border-box;
+}
+:root {
+	font-family: sans-serif;
+}
+body > h1 {
+	text-align: center;
+	font-weight: normal;
+	margin-top: 2rem;
+}
+body > p {
+	text-align: center;
+	font-size: 1.3rem;
+	margin-top: -1em;
+}
+#scatterplot {
+	display: flex;
+	justify-content: center;
+}
+#y-label {
+	transform-origin: 10 250;
+	transform: translate(10 250) rotate(-90);
+}

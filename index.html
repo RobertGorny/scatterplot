@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Scatterplot Graph</title>
+		<link rel="stylesheet" href="styles.css">
+		<script type="module">
+			import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+			document.addEventListener("DOMContentLoaded", () => {
+				
+				const w = 900;
+				const h = 525;
+				const axisPadding = 55;
+				const extraPadding = 12;
+
+				const svg = d3.select("#scatterplot")
+							  .append("svg")
+							  .attr("width", w)
+							  .attr("height", h);
+
+				const url = "https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json";
+
+				const getSeconds = timeStr => 60 * Number(timeStr.slice(0, timeStr.indexOf(":"))) + Number(timeStr.slice(timeStr.indexOf(":") + 1));
+
+				const xhr = new XMLHttpRequest();
+				xhr.open("GET", url, true);
+				xhr.onreadystatechange = () => {
+					if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status <= 299) {
+
+						const dataset = JSON.parse(xhr.response);
+						console.log(dataset);
+
+						const maxTimeInSeconds = d3.max(dataset, d => getSeconds(d["Time"]));
+						const minTimeInSeconds = d3.min(dataset, d => getSeconds(d["Time"]));
+						const maxYear = d3.max(dataset, d => d["Year"]);
+						const minYear = d3.min(dataset, d => d["Year"]);
+
+						const xScale = d3.scaleLinear()
+										 .domain([minYear - 1, maxYear + 1])
+										 .range([axisPadding, w - extraPadding]);
+							
+						const yScale = d3.scaleTime()
+										 .domain([new Date(2000, 0, 1, 0, Math.floor(minTimeInSeconds / 60), minTimeInSeconds % 60), new Date(2000, 0, 1, 0, Math.floor(maxTimeInSeconds / 60), maxTimeInSeconds % 60)])
+										 .range([extraPadding, h - axisPadding]);
+
+						svg.selectAll("circle")
+						   .data(dataset)
+						   .enter()
+						   .append("circle")
+						   .attr("cx", d => xScale(d["Year"]))
+						   .attr("cy", d => {
+						   	   const timeInSeconds = getSeconds(d["Time"]);
+							   return yScale(new Date(2000, 0, 1, 0, Math.floor(timeInSeconds / 60), timeInSeconds % 60));
+						    })
+						   .attr("r", 6)
+						   .attr("fill", d => d["Doping"] ? "hsla(220, 75%, 50%, 80%)" : "hsla(30, 100%, 50%, 80%)")
+						   .style("stroke", "black");
+						   
+						const xAxis = d3.axisBottom(xScale)
+										.tickFormat(d3.format(".0f"));
+						svg.append("g")
+						   .attr("transform", `translate(${0}, ${h - axisPadding})`)
+						   .call(xAxis);
+
+						const yAxis = d3.axisLeft(yScale)
+										.tickFormat(d3.timeFormat("%M:%S"));
+						svg.append("g")
+						   .attr("transform", `translate(${axisPadding}, 0)`)
+						   .call(yAxis);
+
+						const squareLen = 20;
+
+						const verticalMiddle = h / 2 + extraPadding / 2 - axisPadding / 2;
+						const labelFontSize = 10;
+
+						svg.append("rect")
+						   .attr("x", w - extraPadding - squareLen)
+						   .attr("y", verticalMiddle - squareLen - 2)
+						   .attr("width", squareLen)
+						   .attr("height", squareLen)
+						   .attr("fill", "hsl(30, 100%, 50%)");
+
+						svg.append("text")
+						   .text("No doping allegations")
+						   .attr("x", w - extraPadding - squareLen - 110)
+						   .attr("y", verticalMiddle - squareLen / 2 + labelFontSize / 2 - 2)
+						   .style("font-size", labelFontSize + "px");
+				
+						svg.append("rect")
+						   .attr("x", w - extraPadding - squareLen)
+						   .attr("y", verticalMiddle + 2)
+						   .attr("width", squareLen)
+						   .attr("height", squareLen)
+						   .attr("fill", "hsl(220, 75%, 50%)");
+
+						svg.append("text")
+						   .text("Riders with doping allegations")
+						   .attr("x", w - extraPadding - squareLen - 148)
+						   .attr("y", verticalMiddle + squareLen / 2 + labelFontSize / 2 + 2)
+						   .style("font-size", labelFontSize + "px");
+
+						svg.append("text")
+						   .text("Time in Minutes")
+						   .style("font-size", labelFontSize + "px")
+						   .attr("tranform-origin", "10 150")
+						   .attr("transform", "translate(10, 150) rotate(-90)");
+					}
+				}
+				xhr.send();
+
+			});
+		</script>
+	</head>
+	<body>
+		<h1>Doping in Professional Bicycle Racing</h1>
+		<p>35 Fastest times up Alpe d'Huez</p>
+		<div id="scatterplot">
+		</div>
+	</body>
+</html>
+
